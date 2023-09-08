@@ -1,5 +1,3 @@
-package rinha.syntax
-
 type Exp = Expression
 type Loc = Location
 type Par = Parameter
@@ -14,7 +12,7 @@ enum Expression(kind: Kind, location: Loc):
   case Var(name: String, kind: Kind, location: Loc)                               extends Exp(kind, location)
   case Int(value: Int, location: Loc)                                             extends Exp(Kind.Number, location)
   case Str(value: String, location: Loc)                                          extends Exp(Kind.String, location)
-  case Bool(value: Boolean, location: Loc)																				extends Exp(Kind.Boolean, location)
+  case Bool(value: Boolean, location: Loc)                                        extends Exp(Kind.Boolean, location)
   case Binary(lhs: Exp, operation: BinaryOp, rhs: Exp, kind: Kind, location: Loc) extends Exp(kind, location)
   case Tuple(first: Exp, second: Exp, kind: Kind, location: Loc)                  extends Exp(kind, location)
   
@@ -23,7 +21,7 @@ case class Parameter(text: String, location: Location)
 case class File(name: String, expression: Expression, location: Location)
 
 enum BinaryOp:
-	case And, Or, Eq
+  case And, Or, Eq
 
 enum Kind:
   case String, Number, Boolean, Closure, Null
