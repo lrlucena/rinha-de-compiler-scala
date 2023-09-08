@@ -14,3 +14,14 @@
 - Olordecoelho - https://github.com/olordecoelho/rinha-de-compiladores
 - DouglasGabr - https://github.com/DouglasGabr/rinha-de-compiler
 - milyth - https://github.com/milyth/touka
+- italo - https://github.com/ZyllDev/rinha-compiler
+- astahjmo e niumxp - https://github.com/astahjmo/rinha-de-compiler
+- andrecoelho - https://github.com/andrecoelhoa/rinha-interpreter-app
+- Emanuel Júnior - https://github.com/VetusScientia/rinha-de-compiler
+- Lamadelrae - https://github.com/Lamadelrae/compiler-battles-csharp
+- rwillians_ - https://github.com/rwillians/rinha-de-compiladores--gambi-elixir
+- wilgnne - https://github.com/wilgnne/rinha-de-compiler-ts
+- BRonen - https://github.com/BRonen/luajit-rinha-de-compiler
+- netodotcom - https://github.com/netodotcom/rinha-de-compiler
+- mr-soulfox - https://github.com/mr-soulfox/rinha-de-compiladores-cpp
+- Crazynds - https://github.com/crazynds/rinha-compiler
