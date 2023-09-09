@@ -1,8 +1,8 @@
 grammar Rinha;
 
-program: expr;
+program: expr (';' expr)*;
 
-expr: 'let' ID '=' expr ';' expr                  # let
+expr: 'let' ID '=' expr                           # let
     | 'if' expr '{' expr '}' 'else' '{' expr '}'  # if
     | 'fn' '(' ID* ')' '=>' '{' expr '}'          # fun
     | 'call' expr '(' expr* ')'                   # fun
