@@ -4,27 +4,30 @@ type Exp = Expression
 type Loc = Location
 type Par = Parameter
 
-enum Expression(kind: Kind, location: Loc):
-  case Program(expression: Exp, kind: Kind, location: Loc)                        extends Exp(kind, location)
-  case If(condition: Exp, `then`: Exp, otherwise: Exp, kind: Kind, location: Loc) extends Exp(kind, location)
-  case Print(expression: Exp, location: Loc)                                      extends Exp(Kind.Null, location)
-  case Let(id: Var, expression: Exp, in: Exp, kind: Kind, location: Loc)          extends Exp(kind, location)
-  case Call(callee: Exp, arguments: Seq[Exp], kind: Kind, location: Loc)          extends Exp(kind, location)
-  case Function(parameters: Seq[Par], value: Exp, kind: Kind, location: Loc)      extends Exp(kind, location)
-  case Var(name: String, kind: Kind, location: Loc)                               extends Exp(kind, location)
-  case Int(value: Int, location: Loc)                                             extends Exp(Kind.Number, location)
-  case Str(value: String, location: Loc)                                          extends Exp(Kind.String, location)
-  case Bool(value: Boolean, location: Loc)																				extends Exp(Kind.Boolean, location)
-  case Binary(lhs: Exp, operation: BinaryOp, rhs: Exp, kind: Kind, location: Loc) extends Exp(kind, location)
-  case Tuple(first: Exp, second: Exp, kind: Kind.Tuple, location: Loc)            extends Exp(kind, location)
+trait Element:
+  val location: Loc
+
+enum Expression extends Element:
+  case Program(exprs: Seq[Exp],                         location: Loc)                      
+  case If(cond: Exp, `then`: Seq[Exp], other: Seq[Exp], location: Loc)
+  case Print(expr: Exp,                                 location: Loc)
+  case Let(id: Var, expr: Exp, in: Exp,                 location: Loc)
+  case Call(callee: Exp, args: Seq[Exp],                location: Loc)
+  case Function(params: Seq[Par], value: Exp,           location: Loc)
+  case Var(name: String,                                location: Loc)
+  case Int(value: Int,                                  location: Loc)
+  case Str(value: String,                               location: Loc)
+  case Bool(value: Boolean,                             location: Loc)
+  case Binary(lhs: Exp, op: BinaryOp, rhs: Exp,         location: Loc)
+  case Unary(op: UnaryOp, exp: Exp,                     location: Loc)
+  case Tuple(first: Exp, second: Exp,                   location: Loc)
   
-case class Location(start: Int, end: Int, filename: String)
-case class Parameter(text: String, location: Location)
-case class File(name: String, expression: Expression, location: Location)
-
 enum BinaryOp:
-	case Add, Sub, Mul, Div, Rem, Eq, Neq, Lt, Gt, Lte, Gte, And, Or
+  case Add, Sub, Mul, Div, Rem, Eq, Neq, Lt, Gt, Lte, Gte, And, Or
 
-enum Kind:
-  case String, Number, Boolean, Closure, Null
-  case Tuple(first: Kind, second: Kind)
+enum UnaryOp:
+  case Minus, Not
+
+case class Location(start: Int, end: Int, filename: String)
+case class Parameter(text: String, location: Loc) extends Element
+case class File(name: String, expression: Exp, location: Loc) extends Element
