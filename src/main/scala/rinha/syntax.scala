@@ -5,22 +5,22 @@ type Loc = Location
 type Par = Parameter
 
 trait Element:
-  val location: Location
+  val loc: Location
 
 enum Expression extends Element:
-  case Program (loc: Loc)(expr: Exp)
-  case If      (loc: Loc)(cond: Exp, `then`: Exp, `else`: Exp)
-  case Print   (loc: Loc)(expr: Exp)
-  case Let     (loc: Loc)(id: String, exp: Exp, in: Exp)
-  case Call    (loc: Loc)(callee: Exp, args: Seq[Exp])
-  case Function(loc: Loc)(params: Seq[Par], value: Exp)
-  case Var     (loc: Loc)(name: String)
-  case Int     (loc: Loc)(value: Int)
-  case Str     (loc: Loc)(value: String)
-  case Bool    (loc: Loc)(value: Boolean)
-  case Binary  (loc: Loc)(lhs: Exp, op: BinaryOp, rhs: Exp)
-  case Unary   (loc: Loc)(op: UnaryOp, exp: Exp)
-  case Tuple   (loc: Loc)(first: Exp, second: Exp)
+  case Program (expr: Exp,                           loc: Loc)
+  case If      (cond: Exp, `then`: Exp, `else`: Exp, loc: Loc)
+  case Print   (expr: Exp,                           loc: Loc)
+  case Let     (id: String, exp: Exp, in: Exp,       loc: Loc)
+  case Call    (callee: Exp, args: Seq[Exp],         loc: Loc)
+  case Function(params: Seq[Par], value: Exp,        loc: Loc)
+  case Var     (name: String,                        loc: Loc)
+  case Int     (value: Int,                          loc: Loc)
+  case Str     (value: String,                       loc: Loc)
+  case Bool    (value: Boolean,                      loc: Loc)
+  case Binary  (lhs: Exp, op: BinaryOp, rhs: Exp,    loc: Loc)
+  case Unary   (op: UnaryOp, exp: Exp,               loc: Loc)
+  case Tuple   (first: Exp, second: Exp,             loc: Loc)
   
 enum BinaryOp:
   case Add, Sub, Mul, Div, Rem, Eq, Neq, Lt, Gt, Lte, Gte, And, Or
@@ -29,8 +29,8 @@ enum UnaryOp:
   case Minus, Not
 
 case class Location(start: Int, end: Int, filename: String)
-case class Parameter(loc: Loc)(id: String,  extends Element
-case class File(name: String, expression: Exp, location: Loc) extends Element
+case class Parameter(id: String, loc: Loc)  extends Element
+//case class File(name: String, expression: Exp, loc: Loc) extends Element
 
 @main
 def main(): Unit = {}

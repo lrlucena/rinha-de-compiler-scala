@@ -4,8 +4,8 @@ program: expr ;
 
 expr: 'let' ID '=' expr ';' expr               # let   
     | 'if' '(' expr ')' block 'else' block     # if
-    | 'fn' '(' ID (',' ID)* ')' '=>' block     # fun
-    | expr '(' expr (',' expr)* ')'            # call
+    | 'fn' '(' params ')' '=>' block           # fun
+    | expr '(' exprs ')'                       # call
     | 'print' expr                             # print
     | INT                                      # int
     | STR                                      # str
@@ -25,6 +25,8 @@ expr: 'let' ID '=' expr ';' expr               # let
     ;
 
 block: expr | '{' expr '}' ;
+params: ID (',' ID)* ;
+exprs: expr (',' expr)* ;
 
 INT: ('0'..'9')+ ;
 ID: ('a'..'z')+; 
