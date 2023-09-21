@@ -1,1 +1,8 @@
 /target
+
+.antlr
+*.tasty
+*.tokens
+*.class
+*.interp
+src/main/antlr4/rinha/parser/*.java
