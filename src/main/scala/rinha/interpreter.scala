@@ -20,7 +20,7 @@ def evalBasic: PF =
   case a: Str => Success(a)
 
 def evalProgram(implicit eval: Eval): PF =
-  case Program(expr, _) => println("evalprogram"); eval(expr)
+  case Program(expr, _) => eval(expr)
 
 def evalIf(implicit eval: Eval): PF =
   case a@If(cond, th, el, _) => eval(cond) map :
@@ -43,7 +43,7 @@ def evalTuple(implicit eval: Eval): PF =
     case _ => throw RinhaRuntimeError("Expression is not a tuple.", a)
 
 def evalLet(env: Env): PF =
-  case Let(id, expr, next, _) => println("evallet"); interpret(env.updated(id, expr))(next)
+  case Let(id, expr, next, _) => interpret(env.updated(id, expr))(next)
 
 def evalVar(env: Env)(implicit eval: Eval): PF =
   case a@Var(name, _) => env.get(name) match
@@ -112,15 +112,10 @@ def evalCall(implicit eval: Eval): PF = {
 def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
   given eval: Eval = interpret(env)
 
-  val inter = evalProgram(eval) orElse
-    evalBasic orElse
-    evalIf(eval) orElse
-    evalBin(eval) orElse
+  val inter = evalProgram(eval) orElse evalBasic orElse 
+    evalIf(eval) orElse evalBin(eval) orElse
 //    evalCall(eval) orElse
-    evalTuple(eval) orElse
-    evalLet(env) orElse
-    evalVar(env)(eval) orElse
-    evalPrint(eval) orElse
+    evalTuple(eval) orElse evalLet(env) orElse evalVar(env)(eval) orElse   evalPrint(eval) orElse
     evalError
 
   inter(expr)

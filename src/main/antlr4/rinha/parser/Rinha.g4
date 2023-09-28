@@ -24,7 +24,7 @@ expr: 'let' ID '=' expr ';' expr               # let
     | '(' expr ')'                             # par
     ;
 
-block: expr | '{' expr '}' ;
+block: '{' expr '}' ;
 params: ID (',' ID)* ;
 exprs: expr (',' expr)* ;
 
