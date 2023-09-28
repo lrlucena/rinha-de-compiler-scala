@@ -1,106 +1,126 @@
 package rinha
 
-import Expression.*
-import BinaryOp.*
-import scala.{Int => SInt}
+import rinha.BinaryOp.*
+import rinha.Expression.*
+
+import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
 
-case class RinhaRuntimeError(msg: String, loc: Loc) extends Exception(msg) {}
+case class RinhaRuntimeError(msg: String, exp: Exp) extends Exception(msg)
 
-type Environment = Map[String, Exp]
+def error(msg: String, exp: Exp): Failure[Exp] = Failure(RinhaRuntimeError(msg, exp))
 
-type X = {val value: Any}
+type Env = Map[String, Exp]
+type Eval = Exp => Try[Exp]
+type PF = PartialFunction[Exp, Try[Exp]]
 
-val (fst, snd) = ("first", "second")
+def evalBasic: PF =
+  case a: Int => Success(a)
+  case a: Bool => Success(a)
+  case a: Str => Success(a)
 
-def error(msg: String, loc: Loc) = Failure(RinhaRuntimeError(msg, loc))
-def eval(env: Environment)(expr: Exp): Try[Exp] =
-  val en = eval(env)
-  println(s"$env - $expr")
-  expr match
-    case Program(expr, _)                          => en(expr)
-    case If(cond: Bool, th, el, _)                 => if (for e <- en(cond) yield e) == Bool(true) then en(th) else en(el)
-    case If(cond, th, el, loc)                     => for c <- en(cond) yield If(c, th, el, loc)
-    case Let(id, expr, in, _)                      => eval(env.updated(id, expr))(in)
-    case a: Int                                    => Success(a)
-  //  case Print(expr: Int, _)                       => for e <- en(expr) yield {println(e); e}
-  //  case Print(expr: Bool, _)                      => println(expr.value); Success(expr)
-  //  case Print(expr: Str, _)                       => println(expr.value); Success(expr)
-    case Print(expr: Exp, _)                       => for e <- en(expr) yield e match {
-      case a: Int => println(a.value); a
-      case a: Bool => println(a.value); a
-      case a: Str => println(a.value); a
-     // case a@Tuple(x, y, _) => for b <- en(x);  c <- en(y) yield { println(s"($b, $c)"); Tuple(b,c)}
+def evalProgram(implicit eval: Eval): PF =
+  case Program(expr, _) => println("evalprogram"); eval(expr)
+
+def evalIf(implicit eval: Eval): PF =
+  case a@If(cond, th, el, _) => eval(cond) map :
+    case Bool(true, _) => th
+    case Bool(false, _) => el
+    case _ => throw RinhaRuntimeError("Expression is not a boolean", a)
+
+def evalTuple(implicit eval: Eval): PF =
+  case Tuple(first, second, _) =>
+    for b <- eval(first)
+        c <- eval(second)
+    yield Tuple(b, c)
+
+  case a@First(expr, _) => eval(expr) map :
+    case t: Tuple => t.first
+    case _ => throw RinhaRuntimeError("Expression is not a tuple.", a)
+
+  case a@Second(expr, _) => eval(expr) map :
+    case t: Tuple => t.second
+    case _ => throw RinhaRuntimeError("Expression is not a tuple.", a)
+
+def evalLet(env: Env): PF =
+  case Let(id, expr, next, _) => println("evallet"); interpret(env.updated(id, expr))(next)
+
+def evalVar(env: Env)(implicit eval: Eval): PF =
+  case a@Var(name, _) => env.get(name) match
+    case Some(expr) => eval(expr)
+    case None => error(s"$name not found.", a)
+
+def toStr(exp: Exp): String = exp match
+  case _: Function => "<#closure>"
+  case t: Tuple => s"(${toStr(t.first)}, ${toStr(t.second)})"
+  case t: Exp => t.toString
+
+def evalPrint(implicit eval: Eval): PF =
+  case Print(e, _) => eval(e) map :
+    exp => println(toStr(exp)); exp
+
+def evalError: PF =
+  case _: Function => Success("<#closure>")
+  case a => error("Unsupported expression.", a)
+
+given Conversion[scala.Int, Exp] = x => Int(x)
+given Conversion[Boolean, Exp] = x => Bool(x)
+given Conversion[String, Exp] = x => Str(x)
+
+def evalBin(implicit eval: Eval): PF =
+  case Binary(Bool(true, _), And, rhs, _) => eval(rhs)
+  case Binary(Bool(_, _), And, _, _) => Success(false)
+  case Binary(Bool(true, _), Or, _, _) => Success(true)
+  case Binary(Bool(_, _), Or, rhs, _) => eval(rhs)
+  case exp@Binary(lhs, op, rhs, _) =>
+    for l <- eval(lhs)
+        r <- eval(rhs)
+    yield (l, op, r) match
+      case (Int(a, _), Add, Int(b, _)) => a + b
+      case (Int(a, _), Add, Str(b, _)) => s"$a$b"
+      case (Str(a, _), Add, Str(b, _)) => s"$a$b"
+      case (Str(a, _), Add, Int(b, _)) => s"$a$b"
+      case (Int(a, _), Sub, Int(b, _)) => a - b
+      case (Int(a, _), Mul, Int(b, _)) => a * b
+      case (Int(a, _), Div, Int(b, _)) => a / b
+      case (Int(a, _), Rem, Int(b, _)) => a % b
+      case (Int(a, _), Eq, Int(b, _)) => a == b
+      case (Str(a, _), Eq, Str(b, _)) => a == b
+      case (Bool(a, _), Eq, Bool(b, _)) => a == b
+      case (Int(a, _), Neq, Int(b, _)) => a != b
+      case (Str(a, _), Neq, Str(b, _)) => a != b
+      case (Bool(a, _), Neq, Bool(b, _)) => a != b
+      case (Int(a, _), Lt, Int(b, _)) => a < b
+      case (Int(a, _), Gt, Int(b, _)) => a > b
+      case (Int(a, _), Lte, Int(b, _)) => a <= b
+      case (Int(a, _), Gte, Int(b, _)) => a >= b
+      case (_, _, _) => throw RinhaRuntimeError("Invalid binary operation.", exp)
+
+def evalCall(implicit eval: Eval): PF = {
+  //     interpret()
+  case exp => Success(exp)
+  /*  case a@Call(callee, exprs, loc) =>
+    if needsEval(a)
+    then {
+      if needsEval(callee)
+      then eval(callee).flatMap(e => Success(Call(e, exprs, loc)))
+      else exprs.map(eval).map(es => Success(Call(callee, es, loc)))
     }
-    case Print(expr, loc)                          => for e <- en(expr) yield {println(e); e}
-     // val a = en(expr); for x <- a do println(a); a
-    case Call(Var(`fst`, _), exps, loc)            => evalTuple(en)(fst, exps, loc)
-    case Call(Var(`snd`, _), exps, loc)            => evalTuple(en)(snd, exps, loc)
-   // case Call(f: Var, exps, loc)                   => for a <- en(f) yield
-    case Var(name, loc)                            => env.get(name) match {
-      case Some(a) => Success(a)
-      case None => error(s"$name not found.", loc)
-    }
-    case Binary(lhs: Int, op, rhs: Int, loc)       => evalInt(en)(lhs, op, rhs, loc)
-    case Binary(lhs: Bool, op, rhs: Bool, loc)     => evalBool(lhs, op, rhs, loc)
-    case Binary(lhs: Basic, op, rhs: Basic, loc)   => evalStr(lhs, op, rhs, loc)
-    case Binary(lhs, op, rhs, loc)                 => for l <- en(lhs); r <- en(rhs) yield Binary(l, op, r, loc)
-    case a                                         => error("Invalid operation.", a.loc)
+    else Success(a) */
+}
 
-def evalInt(en: Expression => Try[Expression])(lhs: Int, op: BinaryOp, rhs: Int, loc: Loc): Try[Exp] =
-  println(s"evalInt: $lhs, $op, $rhs")
-  val (l, r) = (lhs.value, rhs.value)
-  def opInt(operation: (SInt, SInt) => SInt) = Success(Int(operation(l, r), loc))
-  def opBool(operation: (SInt, SInt) => Boolean) = Success(Bool(operation(l, r), loc))
-  op match
-    case Add => en(Int(lhs.value + rhs.value))//opInt(_ + _)
-    case Sub => opInt(_ - _)
-    case Mul => opInt(_ * _)
-    case Div => if r == 0 then error("/ by zero", loc) else opInt(_ / _)
-    case Rem => if r == 0 then error("/ by zero", loc) else opInt(_ % _)
-    case Eq  => opBool(_ == _)
-    case Neq => opBool(_ != _)
-    case Lt  => opBool(_ < _)
-    case Gt  => opBool(_ > _)
-    case Lte => opBool(_ <= _)
-    case Gte => opBool(_ >= _)
-    case _   => error("Invalid operation between integers.", loc)
+def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
+  given eval: Eval = interpret(env)
 
-def evalBool(lhs: Bool, op: BinaryOp, rhs: Bool, loc: Loc): Try[Exp] =
-  val (l, r) = (lhs.value, rhs.value)
-  def opBool(operation: (Boolean, Boolean) => Boolean) = Success(Bool(operation(l, r), loc))
-  op match
-    case And => opBool(_ && _)
-    case Or  => opBool(_ || _)
-    case Eq  => opBool(_ == _)
-    case Neq => opBool(_ != _)
-    case _   => error("Invalid operation between booleans.", loc)
+  val inter = evalProgram(eval) orElse
+    evalBasic orElse
+    evalIf(eval) orElse
+    evalBin(eval) orElse
+//    evalCall(eval) orElse
+    evalTuple(eval) orElse
+    evalLet(env) orElse
+    evalVar(env)(eval) orElse
+    evalPrint(eval) orElse
+    evalError
 
-def evalStr[T, R](lhs: {val value: T}, op: BinaryOp, rhs: {val value: R}, loc: Loc): Try[Exp] =
-  val (l, r) = (lhs.toString, rhs.toString)
-  def opStr(operation: (String, String) => String) = Success(Str(operation(l, r), loc))
-  def opBool(operation: (String, String) => Boolean) = Success(Bool(operation(l, r), loc))
-  (lhs, op, rhs) match
-    case (a: Str, Eq, b: Str)                => opBool(_ == _)
-    case (_: Str, Neq, _: Str)               => opBool(_ != _)
-    case (_: Str, Add, _) | (_, Add, _: Str) => opStr(_ + _)
-    case (_: Str, _, _)   | (_, _, _: Str)   => error("Invalid operation between strings.", loc)
-    case (_, _, _)                           => error("Invalid operation.", loc)
-
-def evalTuple(en: Expression => Try[Expression])(name: String, args: Seq[Exp], loc: Option[Location]) = (name, args) match
-  case (`fst`, Seq(t: Tuple))  => en(t.first)
-  case (`snd`, Seq(t: Tuple))  => en(t.second)
-  case (_, Seq(c: Call))       => en(c)
-  case (_, _)                  => error("Value is not a tuple.", loc)
-
-@main
-def main() =
-  val a = Program(Binary(Int(1), Rem, Int(0)))
-//  val a = Program(Print(Binary(Var("x"), Add, Bool(false))))
-//  val a = Program(Print(Var("x")))
-
-  val exec = eval(Map())(a)
-  exec match
-    case Success(x) => println(s"Output: $x")
-    case Failure(erro: RinhaRuntimeError) => println(s"Error: ${erro.getMessage} ${erro.loc}")
-    case _ => println("Unkown error.")
+  inter(expr)
