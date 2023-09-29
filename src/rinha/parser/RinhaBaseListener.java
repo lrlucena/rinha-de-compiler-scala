@@ -29,18 +29,6 @@ public class RinhaBaseListener implements RinhaListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPar(RinhaParser.ParContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPar(RinhaParser.ParContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterBool(RinhaParser.BoolContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -204,30 +192,6 @@ public class RinhaBaseListener implements RinhaListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitBlock(RinhaParser.BlockContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterParams(RinhaParser.ParamsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitParams(RinhaParser.ParamsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExprs(RinhaParser.ExprsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExprs(RinhaParser.ExprsContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

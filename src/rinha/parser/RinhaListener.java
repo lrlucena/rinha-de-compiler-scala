@@ -18,18 +18,6 @@ public interface RinhaListener extends ParseTreeListener {
 	 */
 	void exitProgram(RinhaParser.ProgramContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code par}
-	 * labeled alternative in {@link RinhaParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void enterPar(RinhaParser.ParContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code par}
-	 * labeled alternative in {@link RinhaParser#expr}.
-	 * @param ctx the parse tree
-	 */
-	void exitPar(RinhaParser.ParContext ctx);
-	/**
 	 * Enter a parse tree produced by the {@code bool}
 	 * labeled alternative in {@link RinhaParser#expr}.
 	 * @param ctx the parse tree
@@ -195,24 +183,4 @@ public interface RinhaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitBlock(RinhaParser.BlockContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RinhaParser#params}.
-	 * @param ctx the parse tree
-	 */
-	void enterParams(RinhaParser.ParamsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RinhaParser#params}.
-	 * @param ctx the parse tree
-	 */
-	void exitParams(RinhaParser.ParamsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link RinhaParser#exprs}.
-	 * @param ctx the parse tree
-	 */
-	void enterExprs(RinhaParser.ExprsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link RinhaParser#exprs}.
-	 * @param ctx the parse tree
-	 */
-	void exitExprs(RinhaParser.ExprsContext ctx);
 }

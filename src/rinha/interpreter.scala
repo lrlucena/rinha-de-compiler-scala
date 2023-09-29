@@ -19,8 +19,8 @@ def evalBasic: PF =
   case a: Bool => Success(a)
   case a: Str => Success(a)
 
-def evalProgram(implicit eval: Eval): PF =
-  case Program(expr) => eval(expr)
+//def evalProgram(implicit eval: Eval): PF =
+//  case Program(expr) => eval(expr)
 
 def evalIf(implicit eval: Eval): PF =
   case a@If(cond, th, el) => eval(cond) map :
@@ -70,47 +70,48 @@ given Conversion[String, Exp] = x => Str(x)
 
 def evalBin(implicit eval: Eval): PF =
   case Binary(Bool(true), And, rhs) => eval(rhs)
-  case Binary(_: Bool, And, _)      => Success(false)
-  case Binary(Bool(true), Or, _)    => Success(true)
-  case Binary(_: Bool, Or, rhs)     => eval(rhs)
-  case exp@Binary(lhs, op, rhs)     =>
+  case Binary(_: Bool, And, _) => Success(false)
+  case Binary(Bool(true), Or, _) => Success(true)
+  case Binary(_: Bool, Or, rhs) => eval(rhs)
+  case exp@Binary(lhs, op, rhs) =>
     for l <- eval(lhs)
         r <- eval(rhs)
     yield (l, op, r) match
-      case (Int(a), Add, Int(b))   => a + b
-      case (Int(a), Add, Str(b))   => s"$a$b"
-      case (Str(a), Add, Str(b))   => s"$a$b"
-      case (Str(a), Add, Int(b))   => s"$a$b"
-      case (Int(a), Sub, Int(b))   => a - b
-      case (Int(a), Mul, Int(b))   => a * b
-      case (Int(a), Div, Int(b))   => a / b
-      case (Int(a), Rem, Int(b))   => a % b
-      case (Int(a), Eq, Int(b))    => a == b
-      case (Str(a), Eq, Str(b))    => a == b
-      case (Bool(a), Eq, Bool(b))  => a == b
-      case (Int(a), Neq, Int(b))   => a != b
-      case (Str(a), Neq, Str(b))   => a != b
+      case (Int(a), Add, Int(b)) => a + b
+      case (Int(a), Add, Str(b)) => s"$a$b"
+      case (Str(a), Add, Str(b)) => s"$a$b"
+      case (Str(a), Add, Int(b)) => s"$a$b"
+      case (Int(a), Sub, Int(b)) => a - b
+      case (Int(a), Mul, Int(b)) => a * b
+      case (Int(a), Div, Int(b)) => a / b
+      case (Int(a), Rem, Int(b)) => a % b
+      case (Int(a), Eq, Int(b)) => a == b
+      case (Str(a), Eq, Str(b)) => a == b
+      case (Bool(a), Eq, Bool(b)) => a == b
+      case (Int(a), Neq, Int(b)) => a != b
+      case (Str(a), Neq, Str(b)) => a != b
       case (Bool(a), Neq, Bool(b)) => a != b
-      case (Int(a), Lt, Int(b))    => a < b
-      case (Int(a), Gt, Int(b))    => a > b
-      case (Int(a), Lte, Int(b))   => a <= b
-      case (Int(a), Gte, Int(b))   => a >= b
+      case (Int(a), Lt, Int(b)) => a < b
+      case (Int(a), Gt, Int(b)) => a > b
+      case (Int(a), Lte, Int(b)) => a <= b
+      case (Int(a), Gte, Int(b)) => a >= b
       case _ => throw RinhaRuntimeError("Invalid binary operation.", exp)
 
-def evalCall(implicit eval: Eval): PF = {
-  case a @ Call(Function(params, value), exprs) => 
+def evalCall(env: Env = Map())(implicit eval: Eval): PF = {
+  case a@Call(Function(params, value), exprs) =>
     if params.length == exprs.length then
-      val env = params.zip(exprs).foldLeft(Map[String, Exp]())((en, exp) => en.updated(exp._1, exp._2))
-      interpret(env)(value)
-    else throw RinhaRuntimeError("Size of parameters and arguments are not the same.", a)
+      val en = params.zip(exprs).foldLeft(env)((en, exp) => en.updated(exp._1, exp._2))
+      interpret(en)(value)
+    else throw RinhaRuntimeError("The size of parameters and arguments are not the same.", a)
 }
 
 def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
   given eval: Eval = interpret(env)
 
-  val inter = evalProgram orElse evalBasic orElse evalIf orElse evalBin orElse
+  val inter = //evalProgram orElse
+    evalBasic orElse evalIf orElse evalBin orElse
     evalTuple orElse evalVar(env) orElse evalPrint orElse
-    evalCall orElse
+    evalCall(env) orElse
     evalError
 
   inter(expr)

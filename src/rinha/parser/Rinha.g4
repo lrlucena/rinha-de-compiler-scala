@@ -4,11 +4,11 @@ program: expr ;
 
 expr: 'let' ID '=' expr ';' expr               # let   
     | 'if' '(' expr ')' block 'else' block     # if
-    | 'fn' '(' params ')' '=>' block           # fun
+    | 'fn' '(' ID (',' ID)* ')' '=>' block     # fun
     | 'print' '(' expr ')'                     # print
     | 'first' '(' expr ')'                     # first
     | 'second' '(' expr ')'                    # second
-    | expr '(' exprs ')'                       # call
+    | expr '(' expr (',' expr)* ')'            # call
     | INT                                      # int
     | STR                                      # str
     | BOOL                                     # bool
@@ -21,12 +21,9 @@ expr: 'let' ID '=' expr ';' expr               # let
     | expr ('&&'                   ) expr      # bin
     | expr ('||'                   ) expr      # bin    
     | expr ('==' | '!='            ) expr      # bin
-    | '(' expr ')'                             # par
     ;
 
 block: '{' expr '}' ;
-params: ID (',' ID)* ;
-exprs: expr (',' expr)* ;
 
 INT: ('0'..'9')+ ;
 ID: ('a'..'z')+;
