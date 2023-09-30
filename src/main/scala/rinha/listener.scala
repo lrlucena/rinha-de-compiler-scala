@@ -97,8 +97,3 @@ class MyListener extends BaseListener with ContextValue:
 
   override def exitBlock(ctx: BlockContext): Unit = ctx.value =
     ctx.expr.value
-
-  /*override def exitEveryRule(ctx: ParserRuleContext): Unit =
-    System.err.println(ctx.text)
-    System.err.println(ctx.getParent)
-    System.err.println("---")*/

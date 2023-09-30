@@ -40,7 +40,8 @@ def evalTuple(implicit eval: Eval): PF =
     case _ => error("Expression is not a tuple.", a)
 
 def evalVar(env: Env)(implicit eval: Eval): PF =
-  case a@Let(id, expr, next) => System.err.println(a);interpret(env.updated(id, expr))(next)
+  case f: Function => Success(f)
+  case Let(id, expr, next) => interpret(if env.isDefinedAt(id) then env else env.updated(id, expr))(next)
   case a@Var(name) => env.get(name) match
     case Some(expr) => eval(expr)
     case None => error(s"$name not found.", a)
@@ -58,7 +59,6 @@ def evalPrint(implicit eval: Eval): PF =
     case exp => println(toStr(exp)); exp
 
 def evalError: PF =
-  case _: Function => Success("<#closure>")
   case a => error("Unsupported expression.", a)
 
 given Conversion[scala.Int, Exp] = x => Int(x)
@@ -94,20 +94,26 @@ def evalBin(implicit eval: Eval): PF =
       case (Int(a), Gte, Int(b)) => a >= b
       case _ => throw RinhaRuntimeError("Invalid binary operation.", exp)
 
-def evalCall(env: Env = Map())(implicit eval: Eval): PF = {
-  case a@Call(Function(params, value), exprs) =>
-    if params.length == exprs.length then
-      val en = params.zip(exprs).foldLeft(env)((en, exp) => en.updated(exp._1, exp._2))
-      interpret(en)(value)
-    else throw RinhaRuntimeError("The size of parameters and arguments are not the same.", a)
-}
+def evalCall(env: Env = Map())(implicit eval: Eval): PF =
+  case a@Call(exp, exprs) =>
+    eval(exp) flatMap :
+      case Function(params, value) =>
+        if params.length == exprs.length then
+          val en = params.zip(exprs).foldLeft(env)((en, exp) => en.updated(exp._1, eval(exp._2).get))
+      //    System.err.println("--> " + en + " " + value)
+          interpret(en)(value)
+        else error("The size of parameters and arguments are not the same.", a)
+      case exp => error(s"$exp is not a function.", exp)
+
 
 def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
-  given eval: Eval = interpret(env)
+  //System.err.println("Env--> " + env + expr)
+
+  val eval: Eval = interpret(env)
 
   val inter =
-    evalBasic orElse evalIf orElse evalBin orElse
-    evalTuple orElse evalVar(env) orElse evalPrint orElse
-    evalCall(env) orElse evalError
+    evalBasic orElse evalIf(eval) orElse evalBin(eval) orElse
+      evalTuple(eval) orElse evalVar(env)(eval) orElse evalPrint(eval) orElse
+      evalCall(env)(eval) orElse evalError
 
   inter(expr)

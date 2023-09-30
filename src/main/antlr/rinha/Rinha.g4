@@ -9,10 +9,10 @@ expr: 'let' ID '=' expr ';' expr               # let
     | 'first' '(' expr ')'                     # first
     | 'second' '(' expr ')'                    # second
     | BOOL                                     # bool
-    | expr '(' expr (',' expr)* ')'            # call
     | INT                                      # int
     | STR                                      # str
     | ID                                       # id
+    | expr '(' (expr (',' expr)*)? ')'         # call
     | '(' expr ',' expr ')'                    # tuple
     | expr ('*' | '/' | '%'        ) expr      # bin
     | expr ('+' | '-'              ) expr      # bin
