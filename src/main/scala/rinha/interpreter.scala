@@ -19,14 +19,11 @@ def evalBasic: PF =
   case a: Bool => Success(a)
   case a: Str => Success(a)
 
-//def evalProgram(implicit eval: Eval): PF =
-//  case Program(expr) => eval(expr)
-
 def evalIf(implicit eval: Eval): PF =
-  case a@If(cond, th, el) => eval(cond) map :
-    case Bool(true) => th
-    case Bool(false) => el
-    case _ => throw RinhaRuntimeError("Expression is not a boolean", a)
+  case a@If(cond, th, el) => eval(cond) flatMap :
+    case Bool(true) => eval(th)
+    case Bool(false) => eval(el)
+    case _ => error("Expression is not a boolean", a)
 
 def evalTuple(implicit eval: Eval): PF =
   case Tuple(first, second) =>
@@ -34,16 +31,16 @@ def evalTuple(implicit eval: Eval): PF =
         c <- eval(second)
     yield Tuple(b, c)
 
-  case a@First(expr) => eval(expr) map :
-    case Tuple(first, _) => first
-    case _ => throw RinhaRuntimeError("Expression is not a tuple.", a)
+  case a@First(expr) => eval(expr) flatMap :
+    case Tuple(first, _) => eval(first)
+    case _ => error("Expression is not a tuple.", a)
 
-  case a@Second(expr) => eval(expr) map :
-    case Tuple(_, second) => second
-    case _ => throw RinhaRuntimeError("Expression is not a tuple.", a)
+  case a@Second(expr) => eval(expr) flatMap :
+    case Tuple(_, second) => eval(second)
+    case _ => error("Expression is not a tuple.", a)
 
 def evalVar(env: Env)(implicit eval: Eval): PF =
-  case Let(id, expr, next) => interpret(env.updated(id, expr))(next)
+  case a@Let(id, expr, next) => System.err.println(a);interpret(env.updated(id, expr))(next)
   case a@Var(name) => env.get(name) match
     case Some(expr) => eval(expr)
     case None => error(s"$name not found.", a)
@@ -58,7 +55,7 @@ def toStr(exp: Exp): String = exp match
 
 def evalPrint(implicit eval: Eval): PF =
   case Print(e) => eval(e) map :
-    exp => println(toStr(exp)); exp
+    case exp => println(toStr(exp)); exp
 
 def evalError: PF =
   case _: Function => Success("<#closure>")
@@ -108,10 +105,9 @@ def evalCall(env: Env = Map())(implicit eval: Eval): PF = {
 def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
   given eval: Eval = interpret(env)
 
-  val inter = //evalProgram orElse
+  val inter =
     evalBasic orElse evalIf orElse evalBin orElse
     evalTuple orElse evalVar(env) orElse evalPrint orElse
-    evalCall(env) orElse
-    evalError
+    evalCall(env) orElse evalError
 
   inter(expr)

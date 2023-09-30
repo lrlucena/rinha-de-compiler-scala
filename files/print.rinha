@@ -1,1 +1,2 @@
-print ("Hello world")
+let x3s = fn(a) => {fn(b) => {a+b}};
+print(10)

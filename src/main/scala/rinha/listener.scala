@@ -1,5 +1,6 @@
 package rinha
 
+import org.antlr.v4.runtime.ParserRuleContext
 import rinha.parser.RinhaBaseListener as BaseListener
 import org.antlr.v4.runtime.tree.{ParseTree, ParseTreeProperty as Property}
 import rinha.BinaryOp.*
@@ -26,10 +27,10 @@ class MyListener extends BaseListener with ContextValue:
   override def exitProgram(ctx: ProgramContext): Unit = _program = Some:
     Program(ctx.expr.value)
 
-  override def exitLet(ctx: LetContext): Unit = ctx value_= :
-    val id = ctx.expr(0).text
-    val value = ctx.expr(1).value
-    val in = ctx.expr(2).value
+  override def exitLet(ctx: LetContext): Unit = ctx.value_= :
+    val id = ctx.ID.text
+    val value = ctx.expr(0).value
+    val in = ctx.expr(1).value
     Let(id, value, in)
 
   override def exitIf(ctx: IfContext): Unit = ctx.value_= :
@@ -70,7 +71,9 @@ class MyListener extends BaseListener with ContextValue:
     Str(value)
 
   override def exitBool(ctx: BoolContext): Unit = ctx value_= :
+    println(ctx)
     val value = ctx.BOOL().text == "true"
+    println(value)
     Bool(value)
 
   override def exitId(ctx: IdContext): Unit = ctx value_= :
@@ -82,7 +85,7 @@ class MyListener extends BaseListener with ContextValue:
     val second = ctx.expr(1).value
     Tuple(first, second)
 
-  override def exitBin(ctx: BinContext): Unit = ctx value_= :
+  override def exitBin(ctx: BinContext): Unit = ctx.value =
     val lhs = ctx.expr(0).value
     val rhs = ctx.expr(1).value
     val op = ctx(1).text
@@ -92,5 +95,10 @@ class MyListener extends BaseListener with ContextValue:
     ).withDefaultValue(Add)
     Binary(lhs, operation(op), rhs)
 
-  override def exitBlock(ctx: BlockContext): Unit = ctx value_= :
+  override def exitBlock(ctx: BlockContext): Unit = ctx.value =
     ctx.expr.value
+
+  override def exitEveryRule(ctx: ParserRuleContext): Unit =
+    System.err.println(ctx.text)
+    System.err.println(ctx.getParent)
+    System.err.println("---")

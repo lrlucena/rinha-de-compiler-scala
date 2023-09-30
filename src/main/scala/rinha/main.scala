@@ -13,7 +13,7 @@ import scala.util.{Failure, Success}
 def main(file: String) =
   given Listener()
   sourceCode(file).flatMap(walk).flatMap(p => interpret(Map())(p.expr)) match
-    case Success(program) => println(program)
+    case Success(program) =>
     case Failure(e: FileNotFoundException) => println("File not found")
     case Failure(e: RinhaRuntimeError) => println(s"Error: ${e.getMessage}")
     case Failure(e) => println(s"Unknown Error: ${e}")

@@ -8,11 +8,10 @@ expr: 'let' ID '=' expr ';' expr               # let
     | 'print' '(' expr ')'                     # print
     | 'first' '(' expr ')'                     # first
     | 'second' '(' expr ')'                    # second
+    | BOOL                                     # bool
     | expr '(' expr (',' expr)* ')'            # call
     | INT                                      # int
     | STR                                      # str
-    | BOOL                                     # bool
-    | INT                                      # int
     | ID                                       # id
     | '(' expr ',' expr ')'                    # tuple
     | expr ('*' | '/' | '%'        ) expr      # bin
@@ -25,8 +24,11 @@ expr: 'let' ID '=' expr ';' expr               # let
 
 block: '{' expr '}' ;
 
-INT: ('0'..'9')+ ;
-ID: ('a'..'z')+;
+INT: DIGIT+ ;
 STR: '"' .*? '"' ;
-BOOL: ('true' | 'false') ;
+BOOL: 'true' | 'false' ;
+ID: ALPHA (ALPHA|DIGIT)*;
 Space: [ \t\n\r] -> skip ;
+
+fragment ALPHA : 'a' .. 'z' | 'A' .. 'Z' | '_' ;
+fragment DIGIT : '0'..'9' ;
