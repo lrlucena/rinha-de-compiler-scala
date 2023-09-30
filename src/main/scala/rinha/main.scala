@@ -1,7 +1,5 @@
 package rinha
 
-import rinha.BinaryOp.*
-import rinha.Expression.*
 import Walker.{sourceCode, walk}
 import rinha.MyListener as Listener
 
@@ -13,7 +11,7 @@ import scala.util.{Failure, Success}
 def main(file: String) =
   given Listener()
   sourceCode(file).flatMap(walk).flatMap(p => interpret(Map())(p.expr)) match
-    case Success(program) =>
-    case Failure(e: FileNotFoundException) => println("File not found")
+    case Success(_) =>
+    case Failure(_: FileNotFoundException) => println("File not found")
     case Failure(e: RinhaRuntimeError) => println(s"Error: ${e.getMessage}")
-    case Failure(e) => println(s"Unknown Error: ${e}")
+    case Failure(e) => println(s"Syntax Error: ${e.getMessage}")

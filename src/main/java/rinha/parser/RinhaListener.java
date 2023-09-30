@@ -1,4 +1,4 @@
-// Generated from rinha/parser/Rinha.g4 by ANTLR 4.13.1
+// Generated from C:/Users/leona/IdeaProjects/rinha-de-compiler-scala2/src/main/antlr/rinha/Rinha.g4 by ANTLR 4.13.1
 package rinha.parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
