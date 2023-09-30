@@ -1,9 +1,9 @@
 package rinha
 
+import rinha.parser.RinhaBaseListener as BaseListener
 import org.antlr.v4.runtime.tree.{ParseTree, ParseTreeProperty as Property}
 import rinha.BinaryOp.*
 import rinha.Expression.*
-import rinha.parser.RinhaBaseListener as BaseListener
 import rinha.parser.RinhaParser.*
 
 import scala.Int as SInt
@@ -66,7 +66,7 @@ class MyListener extends BaseListener with ContextValue:
     Int(value)
 
   override def exitStr(ctx: StrContext): Unit = ctx value_= :
-    val value = ctx.text
+    val value = ctx.text.drop(1).dropRight(1)
     Str(value)
 
   override def exitBool(ctx: BoolContext): Unit = ctx value_= :
