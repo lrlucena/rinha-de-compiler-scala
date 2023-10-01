@@ -71,9 +71,7 @@ class MyListener extends BaseListener with ContextValue:
     Str(value)
 
   override def exitBool(ctx: BoolContext): Unit = ctx value_= :
-    println(ctx)
     val value = ctx.BOOL().text == "true"
-    println(value)
     Bool(value)
 
   override def exitId(ctx: IdContext): Unit = ctx value_= :
