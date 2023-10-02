@@ -40,7 +40,6 @@ class MyListener extends BaseListener with ContextValue:
     If(cond, `then`, `else`)
 
   override def exitFun(ctx: FunContext): Unit = ctx value_= :
-    ctx.ID
     val params = ctx.ID().asScala.map(_.text).toSeq
     val exp = ctx.block().value
     Function(params, exp)
