@@ -58,9 +58,6 @@ def evalPrint(implicit eval: Eval): PF =
   case Print(e) => eval(e) map :
     case exp => println(toStr(exp)); exp
 
-def evalError: PF =
-  case a => error("Unsupported expression.", a)
-
 given Conversion[scala.Int, Exp] = x => Int(x)
 given Conversion[Boolean, Exp] = x => Bool(x)
 given Conversion[String, Exp] = x => Str(x)
@@ -100,20 +97,15 @@ def evalCall(env: Env = Map())(implicit eval: Eval): PF =
       case Function(params, value) =>
         if params.length == exprs.length then
           val en = params.zip(exprs).foldLeft(env)((en, exp) => en.updated(exp._1, eval(exp._2).get))
-      //    System.err.println("--> " + en + " " + value)
           interpret(en)(value)
         else error("The size of parameters and arguments are not the same.", a)
       case exp => error(s"$exp is not a function.", exp)
 
 
 def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
-  //System.err.println("Env--> " + env + expr)
-
-  val eval: Eval = interpret(env)
-
+  given Eval = interpret(env)
   val inter =
-    evalBasic orElse evalIf(eval) orElse evalBin(eval) orElse
-      evalTuple(eval) orElse evalVar(env)(eval) orElse evalPrint(eval) orElse
-      evalCall(env)(eval) orElse evalError
+    evalBasic orElse evalIf orElse evalBin orElse
+      evalVar(env) orElse evalPrint orElse evalCall(env)
 
-  inter(expr)
+  inter(expr).orElse(error("Unsupported expression.", expr))

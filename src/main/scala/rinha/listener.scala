@@ -1,6 +1,5 @@
 package rinha
 
-import org.antlr.v4.runtime.ParserRuleContext
 import rinha.parser.RinhaBaseListener as BaseListener
 import org.antlr.v4.runtime.tree.{ParseTree, ParseTreeProperty as Property}
 import rinha.BinaryOp.*
@@ -27,57 +26,57 @@ class MyListener extends BaseListener with ContextValue:
   override def exitProgram(ctx: ProgramContext): Unit = _program = Some:
     Program(ctx.expr.value)
 
-  override def exitLet(ctx: LetContext): Unit = ctx.value_= :
+  override def exitLet(ctx: LetContext): Unit = ctx.value =
     val id = ctx.ID.text
     val value = ctx.expr(0).value
     val in = ctx.expr(1).value
     Let(id, value, in)
 
-  override def exitIf(ctx: IfContext): Unit = ctx.value_= :
+  override def exitIf(ctx: IfContext): Unit = ctx.value =
     val cond = ctx.expr.value
     val `then` = ctx.block(0).value
     val `else` = ctx.block(1).value
     If(cond, `then`, `else`)
 
-  override def exitFun(ctx: FunContext): Unit = ctx value_= :
-    val params = ctx.ID().asScala.map(_.text).toSeq
-    val exp = ctx.block().value
+  override def exitFun(ctx: FunContext): Unit = ctx.value =
+    val params = ctx.ID.asScala.map(_.text).toSeq
+    val exp = ctx.block.value
     Function(params, exp)
 
-  override def exitPrint(ctx: PrintContext): Unit = ctx.value_= :
+  override def exitPrint(ctx: PrintContext): Unit = ctx.value =
     val exp = ctx.expr.value
     Print(exp)
 
-  override def exitFirst(ctx: FirstContext): Unit = ctx value_= :
+  override def exitFirst(ctx: FirstContext): Unit = ctx.value =
     val exp = ctx.expr.value
     First(exp)
 
-  override def exitSecond(ctx: SecondContext): Unit = ctx value_= :
+  override def exitSecond(ctx: SecondContext): Unit = ctx.value =
     val exp = ctx.expr.value
     Second(exp)
 
-  override def exitCall(ctx: CallContext): Unit = ctx value_= :
+  override def exitCall(ctx: CallContext): Unit = ctx.value =
     val callee = ctx.expr(0).value
-    val arguments = ctx.expr().asScala.tail.map(_.value).toSeq
+    val arguments = ctx.expr.asScala.tail.map(_.value).toSeq
     Call(callee, arguments)
 
-  override def exitInt(ctx: IntContext): Unit = ctx value_= :
+  override def exitInt(ctx: IntContext): Unit = ctx.value =
     val value = ctx.text.toInt
     Int(value)
 
-  override def exitStr(ctx: StrContext): Unit = ctx value_= :
+  override def exitStr(ctx: StrContext): Unit = ctx.value =
     val value = ctx.text.drop(1).dropRight(1)
     Str(value)
 
-  override def exitBool(ctx: BoolContext): Unit = ctx value_= :
-    val value = ctx.BOOL().text == "true"
+  override def exitBool(ctx: BoolContext): Unit = ctx.value =
+    val value = ctx.BOOL.text == "true"
     Bool(value)
 
-  override def exitId(ctx: IdContext): Unit = ctx value_= :
+  override def exitId(ctx: IdContext): Unit = ctx.value =
     val name = ctx.ID.text
     Var(name)
 
-  override def exitTuple(ctx: TupleContext): Unit = ctx value_= :
+  override def exitTuple(ctx: TupleContext): Unit = ctx.value =
     val first = ctx.expr(0).value
     val second = ctx.expr(1).value
     Tuple(first, second)

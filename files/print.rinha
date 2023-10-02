@@ -1,2 +1,10 @@
-let x3s = fn(a) => {fn(b) => {a+b}};
-print(10)
+let a = print(10);
+let fib = fn (n) => {
+  if (n < 2) {
+    n
+  } else {
+    fib(n - 1) + fib(n - 2)
+  }
+};
+
+print(fib(30))
