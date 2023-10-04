@@ -6,3 +6,6 @@
 *.class
 *.interp
 src/main/antlr4/rinha/parser/*.java
+/.idea
+project/target/
+project/project/

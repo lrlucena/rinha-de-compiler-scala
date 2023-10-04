@@ -7,7 +7,7 @@ enablePlugins(Antlr4Plugin)
 Compile / packageBin / mainClass := Some("rinha.main")
 Compile / scalacOptions ++= Seq("-deprecation","-explain")
 assembly / mainClass :=  Some("rinha.main")
-assembly / assemblyJarName := "rinha-lrlucena.jar"
+assembly / assemblyJarName := "/rinha-lrlucena.jar"
 
 lazy val root = (project in file("."))
   .settings(

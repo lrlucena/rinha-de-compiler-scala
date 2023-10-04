@@ -14,8 +14,6 @@ object Interpreter:
 
   def evaluate(expr: Exp): Try[Exp] = interpret()(expr)
 
-  private def error(msg: String, exp: Exp): Failure[Exp] = Failure(Error(msg, exp))
-
   private def evalBasic: PF =
     case a: Int => Success(a)
     case a: Bool => Success(a)
@@ -122,4 +120,4 @@ object Interpreter:
       evalBasic orElse evalIf orElse evalBin orElse evalTuple orElse
         evalVar(env) orElse evalCall(env) orElse evalPrint
 
-    inter(expr).orElse(Failure(unsupported(expr)))
+    inter.orElse(exp => throw Error("Unknown Error:", exp))(expr)

@@ -79,3 +79,6 @@ class MyListener extends BaseListener with ContextValue[Exp]:
 
   override def exitBlock(ctx: BlockContext): Unit = ctx.value =
     ctx.expr.value
+
+  override def exitParen(ctx: ParenContext): Unit = ctx.value =
+    ctx.expr.value

@@ -1,11 +1,3 @@
-<div align="center">
-
-![banner]
-
-[<img src="https://img.shields.io/badge/Discord-7289DA?style=for-the-badge&logo=discord&logoColor=white">](https://discord.gg/e8EzgPscCw)
-
-</div>
-
 # Introdução
 
 O ideal da rinha é fazer um interpretador ou compilador que rode em uma maquina com 2 núcleos e 2G de RAM.
@@ -22,9 +14,29 @@ Simplificando:
 
 ## Para executar
 
-Cada projeto deve ter seu próprio `Dockerfile` para que consigamos rodar
+```shell
+java -jar rinha-lrlucena.jar files/fib.rinha
+```
 
-## Como testar
+## Para compilar
+
+```shell
+sbt clean compile assembly
+```
+
+## Exemplo de Codigo
+
+```javascript
+let fib = fn (n) => {
+  if (n < 2) {
+    n
+  } else {
+    fib(n - 1) + fib(n - 2)
+  }
+};
+
+print(fib(3))
+```
 
 Para testar você pode usar o arquivo `files/fib.rinha` e gerar com o programa que disponibilizamos
 aqui para um JSON ou você pode usar diretamente o JSON que está em `files/fib.json`.
