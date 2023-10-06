@@ -1,8 +1,8 @@
 package rinha
 
-import rinha.BinaryOp.*
+import rinha.BinaryOp.{Sub, *}
 import rinha.Error.*
-import rinha.Expression.*
+import rinha.Expression.{Int, *}
 
 import scala.language.implicitConversions
 import scala.util.{Failure, Success, Try}
@@ -12,7 +12,11 @@ object Interpreter:
   private type Eval = Exp => Try[Exp]
   private type PF = PartialFunction[Exp, Try[Exp]]
 
-  def evaluate(expr: Exp): Try[Exp] = interpret()(expr)
+  def evaluate(expr: Exp): Try[Exp] = interpret(Map())(expr)
+
+  given Conversion[scala.Int, Exp] = x => Int(x)
+  given Conversion[Boolean, Exp] = x => Bool(x)
+  given Conversion[String, Exp] = x => Str(x)
 
   private def evalBasic: PF =
     case a: Int => Success(a)
@@ -21,7 +25,7 @@ object Interpreter:
 
   private def evalIf(implicit eval: Eval): PF =
     case If(cond, th, el) => eval(cond) flatMap :
-      case Bool(true) => eval(th)
+      case Bool(true)  => eval(th)
       case Bool(false) => eval(el)
       case _ => Failure(notBool(cond))
 
@@ -57,14 +61,10 @@ object Interpreter:
     case t: Exp => t.toString
 
   private def evalPrint(implicit eval: Eval): PF =
-    case Print(e) => eval(e) map :
-      exp => println(toStr(exp)); exp
-
-  private given Conversion[scala.Int, Exp] = x => Int(x)
-
-  private given Conversion[Boolean, Exp] = x => Bool(x)
-
-  private given Conversion[String, Exp] = x => Str(x)
+    case Print(e) =>
+      for exp <- eval(e) yield
+        println(toStr(exp))
+        exp
 
   private def evalBin(implicit eval: Eval): PF =
     case a@Binary(lhs, And, rhs) =>
@@ -83,41 +83,41 @@ object Interpreter:
       for l <- eval(lhs)
           r <- eval(rhs)
       yield (l, op, r) match
-        case (Int(a), Add, Int(b)) => a + b
+        case (a, Eq, b) => a == b
+        case (a, Neq, b) if a.getClass == b.getClass => a != b
+        case (Int(a), op, Int(b)) => op match
+          case Add => a + b
+          case Sub => a - b
+          case Mul => a * b
+          case Div => a / b
+          case Rem => a % b
+          case Lt  => a < b
+          case Gt  => a > b
+          case Lte => a <= b
+          case Gte => a >= b
+          case _ => throw invalidBinary(exp)
         case (Int(a), Add, Str(b)) => s"$a$b"
         case (Str(a), Add, Str(b)) => s"$a$b"
         case (Str(a), Add, Int(b)) => s"$a$b"
-        case (Int(a), Sub, Int(b)) => a - b
-        case (Int(a), Mul, Int(b)) => a * b
-        case (Int(a), Div, Int(b)) => a / b
-        case (Int(a), Rem, Int(b)) => a % b
-        case (Int(a), Eq, Int(b)) => a == b
-        case (Str(a), Eq, Str(b)) => a == b
-        case (Bool(a), Eq, Bool(b)) => a == b
-        case (Int(a), Neq, Int(b)) => a != b
-        case (Str(a), Neq, Str(b)) => a != b
-        case (Bool(a), Neq, Bool(b)) => a != b
-        case (Int(a), Lt, Int(b)) => a < b
-        case (Int(a), Gt, Int(b)) => a > b
-        case (Int(a), Lte, Int(b)) => a <= b
-        case (Int(a), Gte, Int(b)) => a >= b
         case _ => throw invalidBinary(exp)
 
   private def evalCall(env: Env = Map())(implicit eval: Eval): PF =
     case Call(exp, exprs) =>
       eval(exp) flatMap :
-        case Function(params, value) =>
-          if params.length == exprs.length then
-            val en = params.zip(exprs).foldLeft(env)((en, exp) => en.updated(exp._1, eval(exp._2).get))
-            interpret(en)(value)
-          else Failure(sizeMismatch(exp))
+        case Function(params, value) if params.length == exprs.length =>
+          var ev = env
+          for (id, ex) <- params.zip(exprs)
+              e <- eval(ex) do
+                ev = ev.updated(id, e)
+          interpret(ev)(value)
+        case _ : Function => Failure(sizeMismatch(exp))
         case exp => Failure(notFunction(exp))
 
-  private def interpret(env: Env = Map())(expr: Exp): Try[Exp] =
+  private def interpret(env: Env)(expr: Exp): Try[Exp] =
     given Eval = interpret(env)
 
     val inter =
       evalBasic orElse evalIf orElse evalBin orElse evalTuple orElse
         evalVar(env) orElse evalCall(env) orElse evalPrint
 
-    inter.orElse(exp => throw Error("Unknown Error:", exp))(expr)
+    inter.orElse(exp => Failure(unsupported(exp)))(expr)

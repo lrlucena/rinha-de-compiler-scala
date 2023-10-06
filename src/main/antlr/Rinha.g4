@@ -2,16 +2,9 @@ grammar Rinha;
 
 program: expr;
 
-expr: 'let' ID '=' expr ';' expr               # let   
-    | 'if' '(' expr ')' block 'else' block     # if
-    | 'fn' '(' (ID (',' ID)*)? ')' '=>' block  # fun
-    | 'print' '(' expr ')'                     # print
+expr: 'print' '(' expr ')'                     # print
     | 'first' '(' expr ')'                     # first
     | 'second' '(' expr ')'                    # second
-    | BOOL                                     # bool
-    | INT                                      # int
-    | STR                                      # str
-    | ID                                       # id
     | expr '(' (expr (',' expr)*)? ')'         # call
     | '(' expr ',' expr ')'                    # tuple
     | expr ('*' | '/' | '%'        ) expr      # bin
@@ -20,10 +13,16 @@ expr: 'let' ID '=' expr ';' expr               # let
     | expr ('&&'                   ) expr      # bin
     | expr ('||'                   ) expr      # bin    
     | expr ('==' | '!='            ) expr      # bin
-    | '(' expr ')'                             # paren
+    | '(' expr ')'                             # block
+    | '{' expr '}'                             # block
+    | BOOL                                     # bool
+    | INT                                      # int
+    | STR                                      # str
+    | ID                                       # id
+    | 'if' '(' expr ')' expr 'else' expr       # if
+    | 'fn' '(' (ID (',' ID)*)? ')' '=>' expr   # fun
+    | 'let' ID '=' expr ';' expr               # let
     ;
-
-block: '{' expr '}' | expr;
 
 INT: DIGIT+ ;
 STR: '"' .*? '"' ;

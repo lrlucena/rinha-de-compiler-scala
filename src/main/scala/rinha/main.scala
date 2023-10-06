@@ -14,6 +14,6 @@ def main(file: String) =
     p => Interpreter.evaluate(p.expr)
   match
     case Success(_) =>
-    case Failure(_: FileNotFoundException) => println("File not found")
-    case Failure(e: Error) => println(s"Error: ${e.getMessage}")
-    case Failure(e) => println(s"Syntax Error: ${e.getMessage}")
+    case Failure(_: FileNotFoundException) => System.err.println("File not found")
+    case Failure(e: Error) => System.err.println(s"Error: ${e.getMessage} ${e.exp}")
+    case Failure(e) => System.err.println(s"Syntax Error: ${e.getMessage}")
